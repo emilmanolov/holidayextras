@@ -1,0 +1,128 @@
+swagger: '2.0'
+info:
+  title: Web Development API Task
+  description: Emil Manolov
+  version: "1.0.0"
+
+basePath: /
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths:
+  /user/:
+    post:
+      summary: Create a new User.
+      description: ""
+      parameters:
+        - name: user
+          in: body
+          description: JSON containing the user info.
+          schema:
+            $ref: '#/definitions/UserInfo'
+          required: true
+      responses:
+        201:
+          description: The user was successfully created.
+        422: 
+          description: Data validation failed.
+        500:
+          description: Internal Server Error.
+
+  /user/{id}:
+    get:
+      tags:
+        - User    
+      summary: Find user by id.
+      description: ""
+      parameters:
+        - in: path
+          name: id
+          description: Unique user's ID.
+          required: true
+          type: integer
+      responses:
+        200:
+          description: All data for the user.
+          schema:
+            $ref: '#/definitions/User'
+        404: 
+          description: User not found.
+        500:
+          description: Internal Server Error.
+    put:
+      tags:
+        - User
+      summary: Update user's info.
+      description: ""
+      parameters:
+        - in: path
+          name: id
+          description: Unique user's ID.
+          required: true
+          type: string
+        - name: user
+          in: body
+          description: JSON containing the user info.
+          schema:
+            $ref: '#/definitions/UserInfo'
+          required: true          
+      responses:
+        200:
+          description: JSON containing the updated user info.
+          schema:
+            $ref: '#/definitions/User'      
+        422: 
+          description: Data validation failed.
+        500:
+          description: Internal Server Error.
+    delete:
+      tags:
+        - User
+      summary: Delete an user.
+      description: ""
+      parameters:
+        - in: path
+          name: id
+          description: User's ID to delete.
+          required: true
+          type: integer
+      responses:
+        204:
+          description: The request was handled successfully and the response contains no body content.
+        500:
+          description: Internal Server Error.
+
+definitions:
+  User:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Unique user identifier.
+      email:
+        type: string
+        description: User's email address.
+      forename:
+        type: string
+        description: User's forename.
+      surname:
+        type: string
+        description: User's surname.
+      created:
+        type: string
+        description: The datetime of user creation.
+  UserInfo:
+    type: object
+    properties:
+      email:
+        type: string
+        description: User's email address.
+      forename:
+        type: string
+        description: User's forename.
+      surname:
+        type: string
+        description: User's surname.
