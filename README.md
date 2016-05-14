@@ -5,6 +5,9 @@ This demo RESTful API application is implemented in Python (2.7+) with no third-
 The application works with any WSGI-compatible web server. For the purpose of the demo, the *wsgiref.simple_server* Python module is used.
 The persistence layer for the User model is implemented using the Repository Pattern which separates the business logic from the interactions with the underlying data source. This allows the concrete data storage mechanism to be easily changed. For this demo SQLite3 database is used.
 
+An empty sqlite database must be created first by executing the following command in the project's root path:
+> python build.py
+
 The sample application can be started by running the following command in the project's root path:
 > python main.py
 
