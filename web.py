@@ -125,9 +125,9 @@ class Request(object):
 class Response(object):
     """ Value object representing the HTTP response. """
 
-    def __init__(self, body='', status='200 OK', headers=[]):
+    def __init__(self, body='', status='200 OK'):
         self.status = status
-        self.headers = headers
+        self.headers = []
         self.body = body
 
     def add_header(self, key, value):
