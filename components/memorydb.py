@@ -48,9 +48,3 @@ class InMemoryDatabaseThreadSafe(InMemoryDatabase):
     def factory(cls):
         lock = threading.Lock()
         return cls(lock)
-
-if __name__ == '__main__':
-
-    memdb = InMemoryDatabaseThreadSafe.factory()
-    memdb.save('a', 'aaa')
-    print memdb.find('a')

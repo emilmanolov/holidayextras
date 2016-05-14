@@ -3,14 +3,11 @@ info:
   title: Web Development API Task
   description: Emil Manolov
   version: "1.0.0"
-
 basePath: /
-
 consumes:
   - application/json
 produces:
   - application/json
-
 paths:
   /user/:
     post:
@@ -30,7 +27,6 @@ paths:
           description: Data validation failed.
         500:
           description: Internal Server Error.
-
   /user/{id}:
     get:
       tags:
@@ -94,7 +90,6 @@ paths:
           description: The request was handled successfully and the response contains no body content.
         500:
           description: Internal Server Error.
-
 definitions:
   User:
     type: object
