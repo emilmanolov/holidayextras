@@ -1,4 +1,5 @@
 import unittest
+
 from models.user import NameValidator
 
 class UserValidatorTest(unittest.TestCase):

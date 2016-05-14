@@ -1,4 +1,5 @@
 import unittest
+
 from models.user import DomainValidator
 
 class DomainValidatorTest(unittest.TestCase):

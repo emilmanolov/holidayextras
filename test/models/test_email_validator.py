@@ -1,4 +1,5 @@
 import unittest
+
 from models.user import EmailAddressValidator, DomainValidator
 
 class EmailAddressValidatorTest(unittest.TestCase):
