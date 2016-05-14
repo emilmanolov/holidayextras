@@ -1,23 +1,33 @@
 import json
 
 class PresenterFactory(object):
-    def get_presenter(self, request):
-        header_accept = request.headers['ACCEPT']
-        if header_accept.startswith('application/json'):
-            return JsonPresenter(json)
-        elif header_accept.startswith('application/xml'):
-            return XmlPresenter()
+    def get_presenter(self, request, response):
+        return JsonPresenter(response, json)
+        #header_accept = request.headers['ACCEPT']
+        #if header_accept.startswith('application/json'):
+        #    return JsonPresenter(response, json)
+        #elif header_accept.startswith('application/xml'):
+        #    return XmlPresenter()
 
 class JsonPresenter(object):
 
-    def __init__(self, json):
+    def __init__(self, response, json):
+        self.response = response
         self.json = json
 
-    def get_headers(self):
-        return {'Content-Type': 'application/json'}
+    @property
+    def status(self):
+        return self.response.status
 
-    def get_body(self, data):
-        return self.json.dumps(data, indent=2)
+    @property
+    def headers(self):
+        headers = self.response.headers
+        headers.append(('Content-Type', 'application/json'))
+        return headers
+
+    @property
+    def body(self):
+        return self.json.dumps(self.response.body, indent=2)
 
 class XmlPresenter(object):
 

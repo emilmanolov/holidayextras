@@ -1,12 +1,15 @@
+# https://gist.github.com/justanr/aac7bb4576f769c2fecc
+# https://gist.github.com/JonathanRaiman/aa0bdfd8e3511c59f3af
 import config
 import components.memorydb
 import components.sqlitedb
 import models.user
+import datetime
 
 def get_repo():
     """ Factory function for creating UserRepository instance. """
     user_mapper = get_user_mapper()
-    return UserRepository(user_mapper)
+    return UserRepository(models.user.User, user_mapper, datetime.datetime)
 
 def get_user_mapper():
     """ Factory function for creating UserMapper instance depending on the
@@ -24,17 +27,27 @@ class UserRepository:
         Abstracts the persistence layer from different concrete
         data mapper implementations.
     """
-    def __init__(self, user_mapper):
+    def __init__(self, model_class, user_mapper, datetime):
+        self.model_class = model_class
         self.user_mapper = user_mapper
+        self.datetime = datetime
 
     def find_by_id(self, user_id):
         return self.user_mapper.find_by_id(user_id)
 
-    def save(self, user):
-        self.user_mapper.save(user)
+    def persist(self, user):
+        return self.user_mapper.save(user)
 
     def delete(self, user_id):
         self.user_mapper.delete(user_id)
+
+    def create(self, email, forename, surname):
+        user = self.model_class(email, forename, surname)
+        user.created = self._get_timestamp()
+        return user
+
+    def _get_timestamp(self):
+        return str(self.datetime.today())
 
 
 class InMemoryUserMapper(object):
@@ -56,51 +69,52 @@ class InMemoryUserMapper(object):
     def delete(self, user_id):
         self.mem_db.delete(user_id)
 
+    def create(self, **kwargs):
+        #sqlite3.register_adapter()
+        #sqlite3.register_converter()
+        pass
+
 
 class DbUserMapper:
     """ User data mapper using SQLite database for persistence. """
 
+    tablename = 'user'
+
     def __init__(self, db):
         self.db = db
 
-    #def __del__(self):
-    #    self.db.close()
+    def _get_cursor(self, sql, params):
+        sql = sql.format(table=self.tablename)
+        return self.db.execute(sql, params)
 
     def find_by_id(self, user_id):
-        sql = ("SELECT * FROM user WHERE id = ?;")
-        row = self.db.execute(sql, (user_id,)).fetchone()
-        if not row == None:
+        sql = "SELECT * FROM {table} WHERE id = ?"
+        cur = self._get_cursor(sql, (user_id,))
+        row = cur.fetchone()
+        if row:
             return self._create_user(row)
-        return None
-
-    def find_all(self, conditions = []):
-        sql = ("SELECT * FROM user;")
-        rows = self.db.execute(sql, (id,))
-        return self._create_user_collection(rows)
 
     def save(self, user):
         if user.id == None:
-            sql = ("INSERT INTO user (email, forename, surname, created)"
-                   "VALUES (:email, :forename, :surname, NOW());")
+            sql = ("INSERT INTO {table} (email, forename, surname, created) "
+                   "VALUES (:email, :forename, :surname, :created)")
         else:
-            sql = ("UPDATE user"
-                   "SET email = :email, forename = :forename, surname = :surname"
+            sql = ("UPDATE {table} "
+                   "SET email = :email, forename = :forename, surname = :surname "
                    "WHERE id = :id")
-        rows = self.db.execute(sql, {
+        cur = self._get_cursor(sql, {
             'id' : user.id,
             'email' : user.email,
             'forename': user.forename,
             'surname': user.surname,
             'created': user.created,
-        }).fetchall()
-        #self.db.execute(sql, user.__dict__)
-        #self.db.commit()
+        })
+        user.id = cur.lastrowid
+        return user
 
     def delete(self, user_id):
-        cursor = self.db.cursor()
-        sql = "DELETE FROM todo WHERE id = ?;"
-        cursor.execute(sql, (user_id,))
-        self.db.commit()
+        sql = "DELETE FROM {table} WHERE id = ?;"
+        cur = self._get_cursor(sql, (user_id,))
 
     def _create_user(self, row):
         user = models.user.User()

@@ -29,25 +29,27 @@ class WebApp(object):
 
     def wsgi_app(self, environ, start_response):
         request = Request(environ)
-        response = Response()
-        self.dispatch(request, response)
+        response = self.get_response(request)
         start_response(response.status, response.headers)
         return response.body
 
-    def dispatch(self, request, response):
-        controller_class, params = self.url_map.match(request.path)
-        controller = controller_class(request, response)
-        method_name = request.method.lower()
-        controller_method = getattr(controller, method_name)
-        controller_method(**params)
-        #presenter = presenters.PresenterFactory().get_presenter(request)
-        #response = presenter.get_response()
-        try:
-            pass
-        except Exception as e:
-            response.status = '500 INTERNAL SERVER ERROR'
-            response.body = 'Server Error.'
-            raise e
+    def get_response(self, request):
+        #try:
+            controller_class, params = self.url_map.match(request.path)
+            controller = controller_class(request)
+            method_name = request.method.lower()
+            controller_method = getattr(controller, method_name)
+            response = controller_method(**params)
+            response = presenters.PresenterFactory().get_presenter(request, response)
+            #if not isinstance(response, Response):
+            #    raise Exception()
+            return response
+        #except Exception as e:
+        #    response = Response()
+        #    response.add_header('Content-Type', 'text/plain')
+        #    response.status = '500 INTERNAL SERVER ERROR'
+        #    response.body = 'Server Error.'
+        #    return response
 
 #class Dispatcher(object):
 #
@@ -162,7 +164,7 @@ class Request(object):
 
     @property
     def json(self):
-        return json.dumps(self.body, indent=2)
+        return json.loads(self.body)
 
 class Response(object):
     """Value object representing the HTTP response"""
@@ -174,4 +176,36 @@ class Response(object):
 
     def add_header(self, key, value):
         self.headers.append((key, value))
-        return
+
+
+OK = '200 OK',
+MOVED_PEMANENTLY = '301 MOVED PERMANENTLY',
+FOUND = '302 FOUND',
+BAD_REQUEST = '400 BAD REQUEST',
+FORBIDDEN = '403 FORBIDDEN',
+NOT_FOUND = '404 NOT FOUND',
+SERVER_ERROR = '500 INTERNAL SERVER ERROR',
+
+
+class RequestError(Exception):
+    """A base exception for HTTP errors to inherit from."""
+    status = 404
+
+    def __init__(self, message, hide_traceback=False):
+        super(RequestError, self).__init__(message)
+        self.hide_traceback = hide_traceback
+
+
+class Forbidden(RequestError):
+    status = 403
+
+
+class NotFound(RequestError):
+    status = 404
+
+    def __init__(self, message, hide_traceback=True):
+        super(NotFound, self).__init__(message)
+        self.hide_traceback = hide_traceback
+
+class AppError(RequestError):
+    status = 500
