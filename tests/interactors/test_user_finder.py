@@ -15,7 +15,7 @@ class UserFinderTest(unittest.TestCase):
         return UserRepositoryStub()
 
     def test_user_not_found(self):
-        self.user_repository.find_by_id = lambda x: None #User()
+        self.user_repository.find_by_id = lambda x: None
         expected_response = Response('User not found.', '404 Not Found')
         self.assertFindUserResponse(expected_response)
 

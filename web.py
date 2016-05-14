@@ -1,4 +1,3 @@
-""" WSGI application """
 try:
     # Python 3
     import urllib.parse as urlparse
@@ -6,7 +5,6 @@ except ImportError:
     # Python 2.7
     import urlparse
 
-import cgi
 import re
 import json
 import presenters
@@ -31,7 +29,7 @@ class WebApp(object):
         request = Request(environ)
         response = self.get_response(request)
         start_response(response.status, response.headers)
-        return response.body
+        yield response.body
 
     def get_response(self, request):
         try:
@@ -49,7 +47,9 @@ class WebApp(object):
             response.body = 'Server Error.'
             return response
 
+
 class UrlMap:
+    """ Maps URLs to controllers """
 
     def __init__(self, url_map):
         self.url_map = []
@@ -65,11 +65,11 @@ class UrlMap:
             match = url_map[0].search(url)
             if match is not None:
                 return (url_map[2], match.groupdict())
-        raise Exception("No URL handler found!")
+        raise Exception('No URL handler found!')
 
 
 class Request(object):
-    """ HTTP Request """
+    """ Provides simple to use interface to the HTTP request """
 
     def __init__(self, env):
         self._env = env
@@ -108,7 +108,7 @@ class Request(object):
         try:
             return int(self._env.get('CONTENT_LENGTH', '0'))
         except ValueError:
-            pass
+            return 0
 
     @property
     def body(self):
@@ -120,6 +120,7 @@ class Request(object):
     @property
     def json(self):
         return json.loads(self.body)
+
 
 class Response(object):
     """ Value object representing the HTTP response. """
