@@ -17,4 +17,3 @@ CREATE TABLE IF NOT EXISTS user (
     created DATETIME
 );
 """)
-    #cur.execute("INSERT INTO user (email, forename, surname) VALUES('test@email.com','Emil','Manolov');")

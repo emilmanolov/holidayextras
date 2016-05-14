@@ -34,43 +34,20 @@ class WebApp(object):
         return response.body
 
     def get_response(self, request):
-        #try:
+        try:
             controller_class, params = self.url_map.match(request.path)
             controller = controller_class(request)
             method_name = request.method.lower()
             controller_method = getattr(controller, method_name)
             response = controller_method(**params)
             response = presenters.PresenterFactory().get_presenter(request, response)
-            #if not isinstance(response, Response):
-            #    raise Exception()
             return response
-        #except Exception as e:
-        #    response = Response()
-        #    response.add_header('Content-Type', 'text/plain')
-        #    response.status = '500 INTERNAL SERVER ERROR'
-        #    response.body = 'Server Error.'
-        #    return response
-
-#class Dispatcher(object):
-#
-#    def __init__(self, url_map):
-#        self.url_map = url_map
-#
-#    def dispatch(self, request, response):
-#        try:
-#            controller_class, params = self.url_map.match(request.path)
-#            controller = controller_class(request, response)
-#            #presenter = presenters.PresenterFactory().get_presenter(request)
-#            #response = presenter.get_response()
-#        except Exception:
-#            response.status = '500'
-#            response.headers = []
-#            response.body = 'Server Error.'
-#
-#    def _invoke(self, controller, request):
-#        method_name = request.method.lower()
-#        controller_method = getattr(controller, method_name)
-#        return controller_method(**params)
+        except Exception as e:
+            response = Response()
+            response.add_header('Content-Type', 'text/plain')
+            response.status = '500 INTERNAL SERVER ERROR'
+            response.body = 'Server Error.'
+            return response
 
 class UrlMap:
 
@@ -89,7 +66,7 @@ class UrlMap:
             if match is not None:
                 return (url_map[2], match.groupdict())
         raise Exception("No URL handler found!")
-        #controller = getattr(controllers, "Get%s" % controller_name)
+
 
 class Request(object):
     """ HTTP Request """
@@ -97,28 +74,6 @@ class Request(object):
     def __init__(self, env):
         self._env = env
         self._body = None
-        self.GET = urlparse.parse_qs(self._env.get('QUERY_STRING'))
-        self.POST = {}
-        """
-        if self._env['CONTENT_TYPE'].startswith('multipart/form-data'):
-            post_env = self._env.copy()
-            post_env['QUERY_STRING'] = ''
-            post_data = cgi.FieldStorage(fp=self._env['wsgi.input'],
-                                         environ=post_env,
-                                         keep_blank_values=True)
-            for field in post_data:
-                if isinstance(post_data[field], list):
-                    # Since it's a list of multiple items, we must have seen more than
-                    # one item of the same name come in. Store all of them.
-                    self.POST[field] = [fs.value for fs in post_data[field]]
-                elif post_data[field].filename:
-                    # We've got a file.
-                    self.POST[field] = post_data[field]
-                else:
-                    self.POST[field] = post_data[field].value
-        else:
-            self.POST = urlparse.parse_qs(self._env['wsgi.input'].read(self.content_length))
-        """
 
     @property
     def path(self):
@@ -167,7 +122,7 @@ class Request(object):
         return json.loads(self.body)
 
 class Response(object):
-    """Value object representing the HTTP response"""
+    """ Value object representing the HTTP response. """
 
     def __init__(self, body='', status='200 OK', headers=[]):
         self.status = status
@@ -176,36 +131,3 @@ class Response(object):
 
     def add_header(self, key, value):
         self.headers.append((key, value))
-
-
-OK = '200 OK',
-MOVED_PEMANENTLY = '301 MOVED PERMANENTLY',
-FOUND = '302 FOUND',
-BAD_REQUEST = '400 BAD REQUEST',
-FORBIDDEN = '403 FORBIDDEN',
-NOT_FOUND = '404 NOT FOUND',
-SERVER_ERROR = '500 INTERNAL SERVER ERROR',
-
-
-class RequestError(Exception):
-    """A base exception for HTTP errors to inherit from."""
-    status = 404
-
-    def __init__(self, message, hide_traceback=False):
-        super(RequestError, self).__init__(message)
-        self.hide_traceback = hide_traceback
-
-
-class Forbidden(RequestError):
-    status = 403
-
-
-class NotFound(RequestError):
-    status = 404
-
-    def __init__(self, message, hide_traceback=True):
-        super(NotFound, self).__init__(message)
-        self.hide_traceback = hide_traceback
-
-class AppError(RequestError):
-    status = 500

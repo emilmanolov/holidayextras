@@ -34,7 +34,7 @@ class UserCreator(object):
         user_data = self._get_user_data()
         user = self._create_user(user_data)
         if not self._validate(user):
-            return Response('Data validation failed.', '422')
+            return Response('Data validation failed.', '422 Unprocessable Entity')
         if self._persist(user):
             response = Response(user.__dict__, '201 CREATED')
             response.add_header('Location', "/user/{0}".format(user.id))
@@ -73,7 +73,7 @@ class UserUpdater(object):
         user_data = self._get_user_data()
         user = self._create_user(user_data)
         if not self._validate(user):
-            return Response('Data validation failed.', '422')
+            return Response('Data validation failed.', '422 Unprocessable Entity')
         user.id = user_id
         if self._persist(user):
             return Response(user.__dict__)

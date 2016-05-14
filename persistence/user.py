@@ -1,5 +1,3 @@
-# https://gist.github.com/justanr/aac7bb4576f769c2fecc
-# https://gist.github.com/JonathanRaiman/aa0bdfd8e3511c59f3af
 import config
 import components.memorydb
 import components.sqlitedb
@@ -18,8 +16,7 @@ def get_user_mapper():
         db = components.sqlitedb.get_db_connection()
         return DbUserMapper(db)
     elif config.PERSISTENCE_TYPE == 'memory':
-        memory_database = components.memorydb.InMemoryDatabaseThreadSafe.factory()
-        return InMemoryUserMapper(memory_database)
+        return InMemoryUserMapper()
 
 
 class UserRepository:
@@ -54,25 +51,19 @@ class InMemoryUserMapper(object):
     """ User data mapper using InMemoryDatabase for persistence. """
 
     def __init__(self, mem_db):
-        self.mem_db = mem_db
+        raise NotImplementedError('Please Implement this method')
 
     def find_by_id(self, user_id):
-        return self.mem_db.find(user_id)
+        raise NotImplementedError('Please Implement this method')
 
     def save(self, user):
-        if user.user_id == None:
-            #self.current_id
-            pass
-        else:
-            self.mem_db.save(user.user_id, user)
+        raise NotImplementedError('Please Implement this method')
 
     def delete(self, user_id):
-        self.mem_db.delete(user_id)
+        raise NotImplementedError('Please Implement this method')
 
     def create(self, **kwargs):
-        #sqlite3.register_adapter()
-        #sqlite3.register_converter()
-        pass
+        raise NotImplementedError('Please Implement this method')
 
 
 class DbUserMapper:
