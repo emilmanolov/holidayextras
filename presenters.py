@@ -65,6 +65,8 @@ class XmlPresenter(object):
         if isinstance(data, dict):
             for key in data.keys():
                 xml = xml + get_node(key, data[key])
+        else:
+            xml = str(data)
 
         return get_node(root_name, xml)
 
@@ -86,4 +88,14 @@ class TextPresenter(object):
 
     @property
     def body(self):
-        return str(self.response.body)
+        body = self._serialize(self.response.body)
+        return str(body)
+
+    def _serialize(self, data, root_name='item'):
+        if isinstance(data, dict):
+            txt = ''
+            for key in data.keys():
+                row = '{key} : {value}\n'.format(key=key, value=data[key])
+                txt = txt + row
+            return txt
+        return data
