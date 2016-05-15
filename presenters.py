@@ -1,13 +1,19 @@
+""" HTTP content negotioation module. """
 import json
 
 class PresenterFactory(object):
+    """ Creates a proper presenter object based on the 'Accept' header
+        in the HTTP request.
+    """
     def get_presenter(self, request, response):
-        return JsonPresenter(response, json)
-        #header_accept = request.headers['ACCEPT']
-        #if header_accept.startswith('application/json'):
-        #    return JsonPresenter(response, json)
-        #elif header_accept.startswith('application/xml'):
-        #    return XmlPresenter()
+        header_accept = request.headers['ACCEPT']
+        if 'application/json' in header_accept:
+            return JsonPresenter(response, json)
+        elif 'application/xml' in header_accept:
+            return XmlPresenter(response)
+        else:
+            return TextPresenter(response)
+
 
 class JsonPresenter(object):
 
@@ -29,25 +35,54 @@ class JsonPresenter(object):
     def body(self):
         return self.json.dumps(self.response.body, indent=2)
 
+
 class XmlPresenter(object):
 
-    def get_headers(self):
-        return {'Content-Type': 'application/xml'}
+    def __init__(self, response):
+        self.response = response
 
-    def get_body(self, data):
-        return self._serialize(data)
+    @property
+    def status(self):
+        return self.response.status
 
-    def _serialize(self, root):
+    @property
+    def headers(self):
+        headers = self.response.headers
+        headers.append(('Content-Type', 'application/xml'))
+        return headers
+
+    @property
+    def body(self):
+        xml = self._serialize(self.response.body)
+        return str(xml)
+
+    def _serialize(self, data, root_name='item'):
+
+        def get_node(tag, value):
+            return '<{tag}>{value}</{tag}>'.format(tag=tag, value=value)
+
         xml = ''
-        for key in root.keys():
-            if isinstance(root[key], dict):
-                xml = '%s<%s>\n%s</%s>\n' % (xml, key, self._serialize(root[key]), key)
-            elif isinstance(root[key], list):
-                xml = '%s<%s>' % (xml, key)
-                for item in root[key]:
-                    xml = '%s%s' % (xml, self._serialize(item))
-                xml = '%s</%s>' % (xml, key)
-            else:
-                value = root[key]
-                xml = '%s<%s>%s</%s>\n' % (xml, key, value, key)
-        return xml
+        for key in data.keys():
+            xml = xml + get_node(key, data[key])
+
+        return get_node(root_name, xml)
+
+
+class TextPresenter(object):
+
+    def __init__(self, response):
+        self.response = response
+
+    @property
+    def status(self):
+        return self.response.status
+
+    @property
+    def headers(self):
+        headers = self.response.headers
+        headers.append(('Content-Type', 'text/plain'))
+        return headers
+
+    @property
+    def body(self):
+        return str(self.response.body)
