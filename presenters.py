@@ -62,8 +62,9 @@ class XmlPresenter(object):
             return '<{tag}>{value}</{tag}>'.format(tag=tag, value=value)
 
         xml = ''
-        for key in data.keys():
-            xml = xml + get_node(key, data[key])
+        if isinstance(root[key], dict):
+            for key in data.keys():
+                xml = xml + get_node(key, data[key])
 
         return get_node(root_name, xml)
 
